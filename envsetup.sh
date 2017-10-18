@@ -3,6 +3,7 @@ export BUILDROOT=$TOP/build
 export BUILDROOT_CONFIGS=$BUILDROOT/configs
 export BUILDROOT_TOPDIR=$TOP
 export BUILDROOT_WORKDIR=$TOP/out
+export REPO_PROJ_LIST=$BUILDROOT_TOPDIR/.repo/project.list
 
 #-- Environment variable for buildroot
 function _supp_out() {
@@ -66,6 +67,10 @@ function _load_variants() {
   done
 }
 
+function _build_env() {
+  make -f $BUILDROOT/support/extra/local_generate.mk D=$REPO_PROJ_LIST 1>/dev/null
+}
+
 function lunch() {
   local variants=()
   local answer
@@ -117,7 +122,9 @@ function lunch() {
   fi
 
   _supp_out
+
   make ${selection}_defconfig 1>/dev/null
+  _build_env
 }
 
 function make() {
