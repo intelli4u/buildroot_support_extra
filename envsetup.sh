@@ -68,7 +68,7 @@ function _load_variants() {
 }
 
 function _build_env() {
-  make -f $BUILDROOT/support/extra/local_generate.mk D=$REPO_PROJ_LIST 1>/dev/null
+  make -f $BUILDROOT/support/extra/local_generate.mk D="$BUILDROOT_WORKDIR/.config $REPO_PROJ_LIST" 1>/dev/null
 }
 
 function lunch() {
@@ -142,7 +142,11 @@ function make() {
 
 #--------
 _load_variants $BUILDROOT_CONFIGS
-for extdir in ${BUILDROOT_TOPDIR}/*/*/buildroot/configs ; do
+for extdir in $BUILDROOT_TOPDIR/*/*/buildroot/configs ; do
   _load_variants $extdir
 done
 
+HOST_BIN_DIR=$BUILDROOT_WORKDIR/host/bin
+if echo $PATH | grep -qv $HOST_BIN_DIR ; then
+  export PATH=$HOST_BIN_DIR:$PATH
+fi
