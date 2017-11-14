@@ -68,7 +68,7 @@ function _load_variants() {
 }
 
 function _build_env() {
-  make -f $BUILDROOT/support/extra/local_generate.mk D="$BUILDROOT_WORKDIR/.config $REPO_PROJ_LIST" 1>/dev/null
+  make -f $BUILDROOT/support/extra/locals.mk D="$REPO_PROJ_LIST" 1>/dev/null
 }
 
 function lunch() {

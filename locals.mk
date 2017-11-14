@@ -19,7 +19,7 @@ DIR_LIST := $(foreach d,$(SOURCE_DIRS),\
 .PHONY: all
 all: $(OVERRIDE_FILE) $(GLOBAL_VAR_FILE)
 
-$(OVERRIDE_FILE): $(DEPENDENT_LIST)
+$(OVERRIDE_FILE): $(BR2_CONFIG) $(DEPENDENT_LIST)
 	@rm -rf $(OVERRIDE_FILE)
 	@for d in $(DIR_LIST) ; do \
 		dirs=`echo $$d | cut -d: -f2`; \
