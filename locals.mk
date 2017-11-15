@@ -58,7 +58,8 @@ $(OVERRIDE_FILE): $(BR2_CONFIG) $(DEPENDENT_LIST)
 	done
 
 $(GLOBAL_VAR_FILE): $(DEPENDENT_LIST)
-	@rm -rf $(GLOBAL_VAR_FILE);
+	@rm -rf $(GLOBAL_VAR_FILE)
+	@echo "export BR2_USE_BUILDROOT=y" >> $(GLOBAL_VAR_FILE)
 	@for i in $(EXPORT_VAR); do \
 		echo "export $$i" >> $(GLOBAL_VAR_FILE); \
 	done
