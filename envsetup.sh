@@ -68,7 +68,6 @@ function _load_variants() {
 }
 
 function _build_env() {
-  make -f $BUILDROOT/support/extra/locals.mk D="$REPO_PROJ_LIST" 1>/dev/null
   #- find out prebuilts and add them into PATH
   if [ -e $BUILDROOT_WORKDIR/.config ] ; then
     for prebuilts in `cat $BUILDROOT_WORKDIR/.config | grep _PREBUILTS`; do
