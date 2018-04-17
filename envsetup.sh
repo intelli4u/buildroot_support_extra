@@ -72,9 +72,9 @@ function _build_env() {
   if [ -e $BUILDROOT_WORKDIR/.config ] ; then
     for prebuilts in `cat $BUILDROOT_WORKDIR/.config | grep _PREBUILTS`; do
       path=`echo $prebuilts | awk -F\" ' { print $2 } '`
-      if test -e $path/bin && echo ":$path/bin" | grep -qv $PATH ; then
+      if test -e $path/bin && echo $PATH | grep -qv ":$path/bin" ; then
         export PATH=$PATH:$path/bin
-      elif test -e $path && echo ":$path" | grep -qv $PATH ; then
+      elif test -e $path && echo $PATH | grep -qv ":$path" ; then
         export PATH=$PATH:$path
       fi
     done
