@@ -145,8 +145,34 @@ function make() {
     if [ -n $EXTERNALS ] ; then
       options=BR2_EXTERNAL=${EXTERNALS:1}
     fi
+    local start=$(date +%s)
     mkdir -p $BUILDROOT_WORKDIR
     command make -C $BUILDROOT $options $* O=$BUILDROOT_WORKDIR BR2_TOP_DIR=$BUILDROOT_TOPDIR/ BR2_OUT_DIR=$BUILDROOT_OUTDIR/
+    local ret=$?
+    local end=$(date +%s)
+
+    local diff=$(($end-$start))
+    local hours=$(($diff/3600))
+    local mins=$((($diff%3600)/60))
+    local secs=$(($diff%60))
+
+    echo
+    if [ $ret -eq 0 ] ; then
+      echo -n "#### make complete successfully "
+    else
+      echo -n "#### make failed to build "
+    fi
+
+    if [ $hours -gt 0 ] ; then
+      printf "(%02g:%02g:%02g (hh:mm:ss))" $hours $mins $secs
+    elif [ $mins -gt 0 ] ; then
+      printf "(%02g:%02g (mm:ss))" $mins $secs
+    elif [ $secs -gt 0 ] ; then
+      printf "(%s seconds)" $secs
+    fi
+
+    echo " ####"
+    return $ret
   fi
 }
 
