@@ -126,7 +126,7 @@ function lunch() {
     fi
   fi
 
-  if echo $selection | grep -qP _defconfig ; then
+  if echo $selection | grep -q _defconfig ; then
     selection=${selection::-10}
   fi
 
