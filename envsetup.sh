@@ -3,7 +3,6 @@ export BUILDROOT=$TOP/build
 export BUILDROOT_CONFIGS=$BUILDROOT/configs
 export BUILDROOT_TOPDIR=$TOP
 export BUILDROOT_WORKDIR=$TOP/out
-export REPO_PROJ_LIST=$BUILDROOT_TOPDIR/.repo/project.list
 
 #-- Environment variable for buildroot
 function _supp_out() {
