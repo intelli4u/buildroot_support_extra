@@ -89,12 +89,12 @@ function lunch() {
 
       local i=1
       for variant in ${VARIANTS[@]}; do
-        echo "    $i. $variant"
+        echo "    $i. ${variant::-10}"
         i=$(($i+1))
       done
 
       echo
-      echo -n "Which variant? [${VARIANTS[0]}] "
+      echo -n "Which variant? [${VARIANTS[0]::-10}] "
       read answer
     fi
   fi
