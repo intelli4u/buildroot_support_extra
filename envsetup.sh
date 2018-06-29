@@ -4,15 +4,6 @@ export BUILDROOT_CONFIGS=$BUILDROOT/configs
 export BUILDROOT_TOPDIR=$TOP
 export BUILDROOT_WORKDIR=$TOP/out
 
-#-- Environment variable for buildroot
-function _supp_out() {
-  if [ "$SUPPRESS_OUT" == 'y' ] ; then
-    export BUILDROOT_OUTDIR=
-  elif [ -z "$BUILDROOT_OUTDIR" ] ; then
-    export BUILDROOT_OUTDIR=$BUILDROOT_WORKDIR
-  fi
-}
-
 function hmm() {
   echo "Invoke . build/envsetup.sh to add following functions to your environment:"
   echo
@@ -20,8 +11,6 @@ function hmm() {
   echo "lunch   Set the architect to build"
   echo "make    Make the build in the correct directory"
   echo
-  echo "Variable SUPPRESS_OUT=y could suppress the output directory and use the"
-  echo "default path to build the toolchain."
 }
 
 function gettop() {
@@ -129,8 +118,6 @@ function lunch() {
   if echo $selection | grep -q _defconfig ; then
     selection=${selection::-10}
   fi
-
-  _supp_out
 
   make ${selection}_defconfig 1>/dev/null
   _build_env
