@@ -119,11 +119,10 @@ function lunch() {
     selection=${selection::-10}
   fi
 
-  make ${selection}_defconfig 1>/dev/null
-  _build_env
+  export BUILDROOT_CONFIG=$selection
 }
 
-function make() {
+function _make() {
   T=$(gettop)
   if [ ! "$T" ] ; then
     echo "Couldn't locate the project root"
@@ -160,6 +159,12 @@ function make() {
     echo " ####"
     return $ret
   fi
+}
+
+function make {
+  _make ${BUILDROOT_CONFIG}_defconfig 1>/dev/null
+  _build_env
+  _make $*
 }
 
 #--------
