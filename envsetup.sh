@@ -1,8 +1,8 @@
-export TOP=$PWD
-export BUILDROOT=$TOP/build
-export BUILDROOT_CONFIGS=$BUILDROOT/configs
-export BUILDROOT_TOPDIR=$TOP
-export BUILDROOT_WORKDIR=$TOP/out
+TOP=$PWD
+BR2_BUILDDIR=$TOP/build
+BR2_CONFIGS=$BR2_BUILDDIR/configs
+export BR2_TOPDIR=$TOP
+export BR2_OUTDIR=$TOP/out
 
 function hmm() {
   echo "Invoke . build/envsetup.sh to add following functions to your environment:"
@@ -46,7 +46,7 @@ VARIANTS=()
 EXTERNALS=
 
 function _load_variants() {
-  if [ "$1" != $BUILDROOT_CONFIGS ] ; then
+  if [ "$1" != $BR2_CONFIGS ] ; then
     EXTERNALS="$EXTERNALS,${1%/*}"
   fi
 
@@ -57,8 +57,8 @@ function _load_variants() {
 
 function _build_env() {
   #- find out prebuilts and add them into PATH
-  if [ -e $BUILDROOT_WORKDIR/.config ] ; then
-    for prebuilts in `cat $BUILDROOT_WORKDIR/.config | grep _PREBUILTS`; do
+  if [ -e $BR2_OUTDIR/.config ] ; then
+    for prebuilts in `cat $BR2_OUTDIR/.config | grep _PREBUILTS`; do
       path=`echo $prebuilts | awk -F\" ' { print $2 } '`
       if test -e $path/bin && echo $PATH | grep -qv ":$path/bin" ; then
         export PATH=$PATH:$path/bin
@@ -119,7 +119,7 @@ function lunch() {
     selection=${selection::-10}
   fi
 
-  export BUILDROOT_CONFIG=$selection
+  export _BR2_CONFIG=$selection
 }
 
 function _make() {
@@ -132,14 +132,14 @@ function _make() {
     fi
     local start=$(date +%s)
 
-    mkdir -p $BUILDROOT_WORKDIR
+    mkdir -p $BR2_OUTDIR
     command make \
-      -C $BUILDROOT \
+      -C $BR2_BUILDDIR \
       $options $* \
       --no-print-directory \
-      O=$BUILDROOT_WORKDIR \
-      BR2_TOP_DIR=$BUILDROOT_TOPDIR/ \
-      BR2_OUT_DIR=$BUILDROOT_OUTDIR/
+      O=$BR2_OUTDIR \
+      BR2_TOPDIR=$BR2_TOPDIR/ \
+      BR2_OUTDIR=$BR2_OUTDIR/
 
     local ret=$?
     local end=$(date +%s)
@@ -170,18 +170,18 @@ function _make() {
 }
 
 function make {
-  _make ${BUILDROOT_CONFIG}_defconfig 1>/dev/null
+  _make ${_BR2_CONFIG}_defconfig 1>/dev/null
   _build_env
   _make $*
 }
 
 #--------
-_load_variants $BUILDROOT_CONFIGS
-for extdir in $BUILDROOT_TOPDIR/*/*/buildroot/configs ; do
+_load_variants $BR2_CONFIGS
+for extdir in $BR2_TOPDIR/*/*/buildroot/configs ; do
   _load_variants $extdir
 done
 
-HOST_BIN_DIR=$BUILDROOT_WORKDIR/host/bin
+HOST_BIN_DIR=$BR2_OUTDIR/host/bin
 if echo $PATH | grep -qv $HOST_BIN_DIR ; then
   export PATH=$HOST_BIN_DIR:$PATH
 fi
