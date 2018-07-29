@@ -146,6 +146,10 @@ parser.add_option(
     '-c', '--config',
     dest='config', action='store',
     help='Provides the config pairs for the environment variables')
+parser.add_option(
+    '-r', '--root-dir',
+    dest='root', action='store',
+    help='Set the root of the project for project globbing')
 
 if __name__ == '__main__':
     override, override2 = dict(), dict()
@@ -157,6 +161,9 @@ if __name__ == '__main__':
     if len(args) > 1:
         output = args[0]
         argc += 1
+
+    if opt.root:
+        os.chdir(opt.root)
 
     for config in args[argc:]:
         parse_global_config(override, override2, variables, config)
