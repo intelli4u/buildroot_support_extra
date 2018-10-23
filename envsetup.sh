@@ -67,20 +67,6 @@ function _load_variants() {
   done
 }
 
-function _build_env() {
-  #- find out prebuilts and add them into PATH
-  if [ -e $BR2_OUTDIR/.config ] ; then
-    for prebuilts in `cat $BR2_OUTDIR/.config | grep _PREBUILTS`; do
-      path=`echo $prebuilts | awk -F\" ' { print $2 } '`
-      if test -e $path/bin && echo $PATH | grep -qv ":$path/bin" ; then
-        export PATH=$PATH:$path/bin
-      elif test -e $path && echo $PATH | grep -qv ":$path" ; then
-        export PATH=$PATH:$path
-      fi
-    done
-  fi
-}
-
 function lunch() {
   local variants=()
   local answer
@@ -183,14 +169,16 @@ function _make() {
 
 function make {
   _make ${_BR2_CONFIG}_defconfig 1>/dev/null
-  _build_env
   _make $*
 }
 
 #--------
 _load_variants $BR2_CONFIGS
-for extdir in $BR2_TOPDIR/*/*/buildroot/configs ; do
-  _load_variants $extdir
+for extdir in $BR2_TOPDIR/*/*/buildroot ; do
+  _load_variants $extdir/configs
+  if [ -e $extdir/external.sh ] ; then
+    source $extdir/external.sh
+  fi
 done
 
 insert_path_f $BR2_OUTDIR/host/bin
