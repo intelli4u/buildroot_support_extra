@@ -4,6 +4,18 @@ BR2_CONFIGS=$BR2_BUILDDIR/configs
 export BR2_TOPDIR=$TOP
 export BR2_OUTDIR=$TOP/out
 
+function insert_path_f() {
+  if echo ":$PATH:" | grep -qv ":$1:" ; then
+    export PATH=$1:$PATH
+  fi
+}
+
+function insert_path() {
+  if [ -d "$1" ] ; then
+    insert_path_f $1
+  fi
+}
+
 function hmm() {
   echo "Invoke . build/envsetup.sh to add following functions to your environment:"
   echo
@@ -181,7 +193,4 @@ for extdir in $BR2_TOPDIR/*/*/buildroot/configs ; do
   _load_variants $extdir
 done
 
-HOST_BIN_DIR=$BR2_OUTDIR/host/bin
-if echo $PATH | grep -qv $HOST_BIN_DIR ; then
-  export PATH=$HOST_BIN_DIR:$PATH
-fi
+insert_path_f $BR2_OUTDIR/host/bin
