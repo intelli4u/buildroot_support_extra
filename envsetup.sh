@@ -54,17 +54,25 @@ function croot() {
   fi
 }
 
-VARIANTS=()
 EXTERNALS=
+VARIANTS=()
+BR2_COMBO_LOADED=false
+
+function add_lunch_combo() {
+  VARIANTS=(${VARIANTS[@]} $1)
+  BR2_COMBO_LOADED=true
+}
 
 function _load_variants() {
   if [ "$1" != $BR2_CONFIGS ] ; then
     EXTERNALS="$EXTERNALS,${1%/*}"
   fi
 
-  for variant in `ls $1/*_defconfig 2>/dev/null` ; do
-    VARIANTS=(${VARIANTS[@]} ${variant##*/})
-  done
+  if ! $BR2_COMBO_LOADED ; then
+    for variant in `ls $1/*_defconfig 2>/dev/null` ; do
+      VARIANTS=(${VARIANTS[@]} ${variant##*/})
+    done
+  fi
 }
 
 function lunch() {
@@ -87,12 +95,12 @@ function lunch() {
 
       local i=1
       for variant in ${VARIANTS[@]}; do
-        echo "    $i. ${variant::-10}"
+        echo "    $i. ${variant/_defconfig/}"
         i=$(($i+1))
       done
 
       echo
-      echo -n "Which variant? [${VARIANTS[0]::-10}] "
+      echo -n "Which variant? [${VARIANTS[0]/_defconfig}] "
       read answer
     fi
   fi
@@ -173,12 +181,20 @@ function make {
 }
 
 #--------
-_load_variants $BR2_CONFIGS
+# source external.sh to see if add_lunch_combo is invoked,
+# then build variants with _load_variants if not specified.
 for extdir in $BR2_TOPDIR/*/*/buildroot ; do
-  _load_variants $extdir/configs
   if [ -e $extdir/external.sh ] ; then
     source $extdir/external.sh
   fi
 done
 
+#--------
+_load_variants $BR2_CONFIGS
+for extdir in $BR2_TOPDIR/*/*/buildroot ; do
+  _load_variants $extdir/configs
+done
+
+#--------
 insert_path_f $BR2_OUTDIR/host/bin
+
