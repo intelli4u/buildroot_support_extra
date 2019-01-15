@@ -35,13 +35,13 @@ function gettop() {
   else
     local HERE=$PWD
     local T=
-    while [ ! -f THIS_FILE -a $PWD != "/" ] ; do
+    while [ ! -f $THIS_FILE -a $PWD != "/" ] ; do
       cd ..
       T=`PWD= pwd -P`
     done
 
     cd $HERE
-    if [ -f "$T/THIS_FILE" ]  ; then
+    if [ -f "$T/$THIS_FILE" ]  ; then
       echo $HERE
     fi
   fi
