@@ -64,10 +64,6 @@ function add_lunch_combo() {
 }
 
 function _load_variants() {
-  if [ "$1" != $BR2_CONFIGS ] ; then
-    EXTERNALS="$EXTERNALS,${1%/*}"
-  fi
-
   if ! $BR2_COMBO_LOADED ; then
     for variant in `ls $1/*_defconfig 2>/dev/null` ; do
       VARIANTS=(${VARIANTS[@]} ${variant##*/})
@@ -134,7 +130,7 @@ function _make() {
     echo "Couldn't locate the project root"
   else
     if [ -n $EXTERNALS ] ; then
-      options=BR2_EXTERNAL=${EXTERNALS:1}
+      options=BR2_EXTERNAL="$EXTERNALS"
     fi
     local start=$(date +%s)
 
@@ -180,10 +176,16 @@ function make {
   _make $*
 }
 
+for extdir in \
+    `test -d $BR2_TOPDIR/device && find -L $BR2_TOPDIR/device -maxdepth 4 -name external.desc 2>/dev/null | sort`\
+    `test -d $BR2_TOPDIR/vendor && find -L $BR2_TOPDIR/vendor -maxdepth 4 -name external.desc 2>/dev/null | sort`; do
+  EXTERNALS="$EXTERNALS ${extdir%/*}"
+done
+
 #--------
 # source external.sh to see if add_lunch_combo is invoked,
 # then build variants with _load_variants if not specified.
-for extdir in $BR2_TOPDIR/*/*/buildroot ; do
+for extdir in $EXTERNALS ; do
   if [ -e $extdir/external.sh ] ; then
     source $extdir/external.sh
   fi
@@ -191,7 +193,7 @@ done
 
 #--------
 _load_variants $BR2_CONFIGS
-for extdir in $BR2_TOPDIR/*/*/buildroot ; do
+for extdir in $EXTERNALS ; do
   _load_variants $extdir/configs
 done
 
