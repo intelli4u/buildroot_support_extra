@@ -54,32 +54,32 @@ function croot() {
   fi
 }
 
-EXTERNALS=
-VARIANTS=()
-BR2_COMBO_LOADED=false
 
+VARIANTS=()
+LUNCH_CHOICES_ADDED=false
+
+unset LUNCH_CHOICES
 function add_lunch_combo() {
-  VARIANTS=(${VARIANTS[@]} $1)
-  BR2_COMBO_LOADED=true
+  LUNCH_CHOICES=(${LUNCH_CHOICES[@]} $1)
+  LUNCH_CHOICES_ADDED=true
 }
 
 function _load_variants() {
-  if ! $BR2_COMBO_LOADED ; then
-    for variant in `ls $1/*_defconfig 2>/dev/null` ; do
-      VARIANTS=(${VARIANTS[@]} ${variant##*/})
+  if ! $LUNCH_CHOICES_ADDED ; then
+    for defconfig in `ls $1/*_defconfig 2>/dev/null` ; do
+      LUNCH_CHOICES=(${LUNCH_CHOICES[@]} ${defconfig##*/})
     done
   fi
 }
 
 function lunch() {
-  local variants=()
   local answer
   local selection
 
   if [ "$1" ] ; then
     answer=$1
   else
-    if [ ${#VARIANTS[@]} -eq 0 ] ; then
+    if [ ${#LUNCH_CHOICES[@]} -eq 0 ] ; then
       echo "No available variants for building..."
       return
     else
@@ -90,23 +90,23 @@ function lunch() {
       echo
 
       local i=1
-      for variant in ${VARIANTS[@]}; do
-        echo "    $i. ${variant/_defconfig/}"
+      for choice in ${LUNCH_CHOICES[@]}; do
+        echo "    $i. ${choice/_defconfig/}"
         i=$(($i+1))
       done
 
       echo
-      echo -n "Which variant? [${VARIANTS[0]/_defconfig}] "
+      echo -n "Which variant? [${LUNCH_CHOICES[0]/_defconfig}] "
       read answer
     fi
   fi
 
   if [ -z "$answer" ] ; then
-    selection=${VARIANTS[0]}
+    selection=${LUNCH_CHOICES[0]}
   else
     if echo -n $answer | grep -qe "^[0-9][0-9]*$" ; then
-      if [ $answer -le ${#VARIANTS[@]} ] ; then
-        selection=${VARIANTS[$(($answer-1))]}
+      if [ $answer -le ${#LUNCH_CHOICES[@]} ] ; then
+        selection=${LUNCH_CHOICES[$(($answer-1))]}
       else
         echo
         echo "** Invalid variant $selection"
@@ -121,17 +121,15 @@ function lunch() {
     selection=${selection::-10}
   fi
 
-  export _BR2_CONFIG=$selection
+  export LUNCH_SELECTION=$selection
 }
 
+unset BR_EXTERNALS
 function _make() {
   T=$(gettop)
   if [ ! "$T" ] ; then
     echo "Couldn't locate the project root"
   else
-    if [ -n $EXTERNALS ] ; then
-      options=BR2_EXTERNAL="$EXTERNALS"
-    fi
     local start=$(date +%s)
 
     mkdir -p $BR2_OUTDIR
@@ -141,7 +139,8 @@ function _make() {
       --no-print-directory \
       O=$BR2_OUTDIR \
       BR2_TOPDIR=$BR2_TOPDIR/ \
-      BR2_OUTDIR=$BR2_OUTDIR/
+      BR2_OUTDIR=$BR2_OUTDIR/ \
+      BR2_EXTERNAL="${BR_EXTERNALS[*]}"
 
     local ret=$?
     local end=$(date +%s)
@@ -172,20 +171,20 @@ function _make() {
 }
 
 function make {
-  _make ${_BR2_CONFIG}_defconfig 1>/dev/null
+  _make ${LUNCH_SELECTION}_defconfig 1>/dev/null
   _make $*
 }
 
 for extdir in \
     `test -d $BR2_TOPDIR/device && find -L $BR2_TOPDIR/device -maxdepth 4 -name external.desc 2>/dev/null | sort`\
     `test -d $BR2_TOPDIR/vendor && find -L $BR2_TOPDIR/vendor -maxdepth 4 -name external.desc 2>/dev/null | sort`; do
-  EXTERNALS="$EXTERNALS ${extdir%/*}"
+  BR_EXTERNALS=(${BR_EXTERNALS[@]} ${extdir%/*})
 done
 
 #--------
 # source external.sh to see if add_lunch_combo is invoked,
 # then build variants with _load_variants if not specified.
-for extdir in $EXTERNALS ; do
+for extdir in ${BR_EXTERNALS[@]} ; do
   if [ -e $extdir/external.sh ] ; then
     source $extdir/external.sh
   fi
@@ -193,7 +192,7 @@ done
 
 #--------
 _load_variants $BR2_CONFIGS
-for extdir in $EXTERNALS ; do
+for extdir in ${BR_EXTERNALS[@]} ; do
   _load_variants $extdir/configs
 done
 
