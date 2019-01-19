@@ -2,7 +2,7 @@ TOP=$PWD
 BR2_BUILDDIR=$TOP/build
 BR2_CONFIGS=$BR2_BUILDDIR/configs
 export BR2_TOPDIR=$TOP
-export BR2_OUTDIR=$TOP/out
+export BR2_OUT_ROOTDIR=$TOP/out
 
 function insert_path_f() {
   if echo ":$PATH:" | grep -qv ":$1:" ; then
@@ -122,6 +122,9 @@ function lunch() {
   fi
 
   export LUNCH_SELECTION=$selection
+  export BR2_OUTDIR=$BR2_OUT_ROOTDIR/$LUNCH_SELECTION
+  #--------
+  insert_path_f $BR2_OUTDIR/host/bin
 }
 
 unset BR_EXTERNALS
@@ -195,7 +198,4 @@ _load_variants $BR2_CONFIGS
 for extdir in ${BR_EXTERNALS[@]} ; do
   _load_variants $extdir/configs
 done
-
-#--------
-insert_path_f $BR2_OUTDIR/host/bin
 
