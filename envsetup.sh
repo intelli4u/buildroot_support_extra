@@ -123,6 +123,7 @@ function lunch() {
 
   export LUNCH_SELECTION=$selection
   export BR2_OUTDIR=$BR2_OUT_ROOTDIR/$LUNCH_SELECTION
+  export OUT=$BR2_OUTDIR
   #--------
   insert_path_f $BR2_OUTDIR/host/bin
 }
