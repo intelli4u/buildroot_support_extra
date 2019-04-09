@@ -1,8 +1,10 @@
 TOP=$PWD
-BR2_BUILDDIR=$TOP/build
+
+export BR2_TOPDIR=$TOP/
+export BR2_BUILDDIR=$TOP/build
+
+BR2_OUTROOT=$TOP/out
 BR2_CONFIGS=$BR2_BUILDDIR/configs
-export BR2_TOPDIR=$TOP
-export BR2_OUT_ROOTDIR=$TOP/out
 
 function insert_path_f() {
   if echo ":$PATH:" | grep -qv ":$1:" ; then
@@ -54,32 +56,32 @@ function croot() {
   fi
 }
 
-
+EXTERNALS=
 VARIANTS=()
-LUNCH_CHOICES_ADDED=false
+BR2_COMBO_LOADED=false
 
-unset LUNCH_CHOICES
 function add_lunch_combo() {
-  LUNCH_CHOICES=(${LUNCH_CHOICES[@]} $1)
-  LUNCH_CHOICES_ADDED=true
+  VARIANTS=(${VARIANTS[@]} $1)
+  BR2_COMBO_LOADED=true
 }
 
 function _load_variants() {
-  if ! $LUNCH_CHOICES_ADDED ; then
-    for defconfig in `ls $1/*_defconfig 2>/dev/null` ; do
-      LUNCH_CHOICES=(${LUNCH_CHOICES[@]} ${defconfig##*/})
+  if ! $BR2_COMBO_LOADED ; then
+    for variant in `ls $1/*_defconfig 2>/dev/null` ; do
+      VARIANTS=(${VARIANTS[@]} ${variant##*/})
     done
   fi
 }
 
 function lunch() {
+  local variants=()
   local answer
   local selection
 
   if [ "$1" ] ; then
     answer=$1
   else
-    if [ ${#LUNCH_CHOICES[@]} -eq 0 ] ; then
+    if [ ${#VARIANTS[@]} -eq 0 ] ; then
       echo "No available variants for building..."
       return
     else
@@ -90,23 +92,23 @@ function lunch() {
       echo
 
       local i=1
-      for choice in ${LUNCH_CHOICES[@]}; do
-        echo "    $i. ${choice/_defconfig/}"
+      for variant in ${VARIANTS[@]}; do
+        echo "    $i. ${variant/_defconfig/}"
         i=$(($i+1))
       done
 
       echo
-      echo -n "Which variant? [${LUNCH_CHOICES[0]/_defconfig}] "
+      echo -n "Which variant? [${VARIANTS[0]/_defconfig}] "
       read answer
     fi
   fi
 
   if [ -z "$answer" ] ; then
-    selection=${LUNCH_CHOICES[0]}
+    selection=${VARIANTS[0]}
   else
     if echo -n $answer | grep -qe "^[0-9][0-9]*$" ; then
-      if [ $answer -le ${#LUNCH_CHOICES[@]} ] ; then
-        selection=${LUNCH_CHOICES[$(($answer-1))]}
+      if [ $answer -le ${#VARIANTS[@]} ] ; then
+        selection=${VARIANTS[$(($answer-1))]}
       else
         echo
         echo "** Invalid variant $selection"
@@ -121,30 +123,30 @@ function lunch() {
     selection=${selection::-10}
   fi
 
-  export LUNCH_SELECTION=$selection
-  export BR2_OUTDIR=$BR2_OUT_ROOTDIR/$LUNCH_SELECTION
+  export _BR2_CONFIG=$selection
+  export BR2_OUTDIR=$BR2_OUTROOT/$_BR2_CONFIG
   export OUT=$BR2_OUTDIR
   #--------
   insert_path_f $BR2_OUTDIR/host/bin
 }
 
-unset BR_EXTERNALS
 function _make() {
   T=$(gettop)
   if [ ! "$T" ] ; then
     echo "Couldn't locate the project root"
   else
+    export BR2_EXTERNAL=
+    if [ -n "$EXTERNALS" ] ; then
+      export BR2_EXTERNAL=\"${EXTERNALS:1}\"
+    fi
     local start=$(date +%s)
 
     mkdir -p $BR2_OUTDIR
-    command make \
-      -C $BR2_BUILDDIR \
-      $options $* \
-      --no-print-directory \
-      O=$BR2_OUTDIR \
-      BR2_TOPDIR=$BR2_TOPDIR/ \
-      BR2_OUTDIR=$BR2_OUTDIR/ \
-      BR2_EXTERNAL="${BR_EXTERNALS[*]}"
+    if [ -e $BR2_TOPDIR/Makefile ] ; then
+      command make $*
+    else
+      command make --no-print-directory -C $BR2_BUILDDIR O=$BR2_OUTDIR $*
+    fi
 
     local ret=$?
     local end=$(date +%s)
@@ -175,20 +177,20 @@ function _make() {
 }
 
 function make {
-  _make ${LUNCH_SELECTION}_defconfig 1>/dev/null
+  _make ${_BR2_CONFIG}_defconfig 1>/dev/null
   _make $*
 }
 
 for extdir in \
     `test -d $BR2_TOPDIR/device && find -L $BR2_TOPDIR/device -maxdepth 4 -name external.desc 2>/dev/null | sort`\
     `test -d $BR2_TOPDIR/vendor && find -L $BR2_TOPDIR/vendor -maxdepth 4 -name external.desc 2>/dev/null | sort`; do
-  BR_EXTERNALS=(${BR_EXTERNALS[@]} ${extdir%/*})
+  EXTERNALS="$EXTERNALS ${extdir%/*}"
 done
 
 #--------
 # source external.sh to see if add_lunch_combo is invoked,
 # then build variants with _load_variants if not specified.
-for extdir in ${BR_EXTERNALS[@]} ; do
+for extdir in $EXTERNALS ; do
   if [ -e $extdir/external.sh ] ; then
     source $extdir/external.sh
   fi
@@ -196,7 +198,7 @@ done
 
 #--------
 _load_variants $BR2_CONFIGS
-for extdir in ${BR_EXTERNALS[@]} ; do
+for extdir in $EXTERNALS ; do
   _load_variants $extdir/configs
 done
 
