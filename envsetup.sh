@@ -124,8 +124,8 @@ function lunch() {
   fi
 
   export _BR2_CONFIG=$selection
-  export BR2_OUTDIR=$BR2_OUTROOT/$_BR2_CONFIG/
-  export OUT=$BR2_OUTDIR
+  export OUT=$BR2_OUTROOT/$_BR2_CONFIG
+  export BR2_OUTDIR=$OUT/
   #--------
   insert_path_f $BR2_OUTDIR/host/bin
 }
