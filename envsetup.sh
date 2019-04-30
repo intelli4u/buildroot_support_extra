@@ -7,8 +7,9 @@ BR2_OUTROOT=$TOP/out
 BR2_CONFIGS=$BR2_BUILDDIR/configs
 
 function insert_path_f() {
-  if echo ":$PATH:" | grep -qv ":$1:" ; then
-    export PATH=$1:$PATH
+  path=${1/\/\//\/}
+  if echo ":$PATH:" | grep -qv ":$path:" ; then
+    export PATH=$path:$PATH
   fi
 }
 
