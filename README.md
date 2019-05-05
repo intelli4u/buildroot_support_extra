@@ -1,7 +1,7 @@
 # buildroot-external-wrapper
 
-The stuffs works as the wrapper to build with [buildroot] with [br-external]
-with the auxiliary scripts. The bash script `envsetup.sh` is the main entry
+The stuffs work as a wrapper to build with [buildroot] plus [br-external]
+and the auxiliary scripts. The `bash` script `envsetup.sh` is the main entry
 to initialize the full buildroot build environment.
 
 Like [Android], the script can be `sourced` to load all supported functions,
@@ -12,14 +12,14 @@ and `lunch` is the function to list all supported variants built with
 
 ## Reasonable br-exteranl trees
 
-`BR2_EXTERNAL` is the key to the wrapper. And how to find out the supported
-br-external components is also important.
+`BR2_EXTERNAL` is the key to the wrapper. How to find out the supported
+br-external components is also important for the script.
 
-The wrapper referred to [Android] implementation to detect the vendor devices
+The wrapper referred to [Android] implementation to detect vendor defconfigs 
 in `device/*/*` and `vendor/*/*`. According to [br-external], the file
-`external.desc` is the one to describe the br2-external tree. Therefore,
+`external.desc` is the one to describe a br2-external tree. Therefore,
 the directories under `device` and `vendor` containing the file `external.desc`
-will be appended to BR2_EXTERNAL and exported.
+will be appended to `BR2_EXTERNAL` and exported.
 
 ## Supported configs
 
