@@ -124,8 +124,8 @@ function lunch() {
     selection=${selection::-10}
   fi
 
-  export _BR2_CONFIG=$selection
-  export OUT=$BR2_OUTROOT/$_BR2_CONFIG
+  export BR2_PRODUCT=$selection
+  export OUT=$BR2_OUTROOT/$BR2_PRODUCT
   export BR2_OUTDIR=$OUT/
   #--------
   insert_path_f $BR2_OUTDIR/host/bin
@@ -178,7 +178,7 @@ function _make() {
 }
 
 function make {
-  _make ${_BR2_CONFIG}_defconfig 1>/dev/null
+  _make ${BR2_PRODUCT}_defconfig 1>/dev/null
   _make $*
 }
 
