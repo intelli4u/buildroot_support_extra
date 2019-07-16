@@ -47,6 +47,7 @@ to the user finally.
 
 Following variables are exported to the shell:
 
+- `BR2_PRODUCT` - the selected variant to build
 - `BR2_TOPDIR` - the top directory of project
 - `BR2_BUILDDIR` - the directory `$BR2_TOPDIR/build` for original `buildroot`
 - `BR2_OUTDIR` - the directory `$BR2_TOPDIR/out/` for built stuffs
