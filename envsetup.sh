@@ -5,11 +5,16 @@ export BR2_BUILDDIR=$TOP/build
 
 BR2_OUTROOT=$TOP/out
 BR2_CONFIGS=$BR2_BUILDDIR/configs
+BR2_PRE_PATHS=
 
 function insert_path_f() {
   path=${1/\/\//\/}
   if echo ":$PATH:" | grep -qv ":$path:" ; then
-    export PATH=$path:$PATH
+    export PATH=${PATH/$BR2_PRE_PATHS/}
+
+    BR2_PRE_PATHS=$path:$BR2_PRE_PATHS
+    export PATH=$BR2_PRE_PATHS$PATH
+    export PATH=${PATH#:}
   fi
 }
 
@@ -127,6 +132,11 @@ function lunch() {
   export BR2_PRODUCT=$selection
   export OUT=$BR2_OUTROOT/$BR2_PRODUCT
   export BR2_OUTDIR=$OUT/
+
+  # the modified path after lunch will be cleaned
+  export PATH=${PATH/$BR2_PRE_PATHS/}
+  export PATH=${PATH#:}
+  export BR2_PRE_PATHS=
   #--------
   insert_path_f $BR2_OUTDIR/host/bin
 }
@@ -203,3 +213,5 @@ for extdir in $EXTERNALS ; do
   _load_variants $extdir/configs
 done
 
+# reset not to clean path during initialization
+export BR2_PRE_PATHS=
