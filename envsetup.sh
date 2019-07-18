@@ -24,6 +24,10 @@ function insert_path() {
   fi
 }
 
+function post_lunch() {
+  :
+}
+
 function hmm() {
   echo "Invoke . build/envsetup.sh to add following functions to your environment:"
   echo
@@ -139,6 +143,7 @@ function lunch() {
   export BR2_PRE_PATHS=
   #--------
   insert_path_f $BR2_OUTDIR/host/bin
+  post_lunch
 }
 
 function _make() {
