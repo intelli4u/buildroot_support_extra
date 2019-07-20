@@ -142,7 +142,6 @@ function lunch() {
   export PATH=${PATH#:}
   export BR2_PRE_PATHS=
   #--------
-  insert_path_f $BR2_OUTDIR/host/bin
   post_lunch
 }
 
