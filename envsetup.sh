@@ -119,14 +119,18 @@ function lunch() {
     if echo -n $answer | grep -qe "^[0-9][0-9]*$" ; then
       if [ $answer -le ${#VARIANTS[@]} ] ; then
         selection=${VARIANTS[$(($answer-1))]}
-      else
-        echo
-        echo "** Invalid variant $selection"
-        return
       fi
     else
-      selection=$answer
+      if echo $answer | grep -q "${VARIANTS[@]}" ; then
+        selection=$answer
+      fi
     fi
+  fi
+
+  if [ -z "$selection" ] ; then
+    echo "** Invalid variant $answer"
+    echo
+    return 1
   fi
 
   if echo $selection | grep -q _defconfig ; then
